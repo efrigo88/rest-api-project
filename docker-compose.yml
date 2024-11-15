@@ -5,4 +5,8 @@ services:
     ports:
       - "5001:5000"
     volumes:
-      - .:/app
+      - my_volume:/app
+      - .:/app:ro # Read-only bind mount for live updates
+
+volumes:
+  my_volume:
