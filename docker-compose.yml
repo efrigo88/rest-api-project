@@ -5,8 +5,8 @@ services:
     ports:
       - "5001:5000"
     volumes:
-      - my_volume:/app
-      - .:/app:ro # Read-only bind mount for live updates
+      - my_volume:/app/instance # Map a writable volume for the instance folder
+      - .:/app:ro # Keep the application code read-only for safety
 
 volumes:
   my_volume:
