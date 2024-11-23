@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from flask_jwt_extended import JWTManager
 from flask_smorest import Api
 
 import models
@@ -36,5 +37,8 @@ def create_app(db_url=None):
     api.register_blueprint(ItemBlueprint)
     api.register_blueprint(StoreBlueprint)
     api.register_blueprint(TagBlueprint)
+
+    app.config["JWT_SECRET_KEY"] = "302877185481875157504941661305616513329"
+    jwt = JWTManager(app)
 
     return app
