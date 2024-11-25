@@ -4,8 +4,8 @@ from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from flask_smorest import Api
 
-import models
 from db import db
+from models import BlocklistModel
 from resources.item import blp as ItemBlueprint
 from resources.store import blp as StoreBlueprint
 from resources.tag import blp as TagBlueprint
@@ -40,8 +40,36 @@ def create_app(db_url=None):
     api.register_blueprint(TagBlueprint)
     api.register_blueprint(UserBlueprint)
 
+    """
+    JWT related configuration. The following functions includes:
+    1) add claims to each jwt
+    2) customize the token expired error message
+    """
     app.config["JWT_SECRET_KEY"] = "302877185481875157504941661305616513329"
     jwt = JWTManager(app)
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_in_blocklist(jwt_header, jwt_payload):
+        jti = BlocklistModel.query.filter(
+            BlocklistModel.jti == jwt_payload["jti"]
+        ).first()
+        return jti is not None  # Explicitly return True or False
+
+    @jwt.revoked_token_loader
+    def revoked_token_callback(jwt_header, jwt_payload):
+        return (
+            jsonify(
+                {"description": "The token has been revoked.", "error": "token_revoked"}
+            ),
+            401,
+        )
+
+    @jwt.additional_claims_loader
+    def add_claims_to_jwt(identity):
+        # TODO: Read from a config file instead of hard-coding
+        if identity == 1:
+            return {"is_admin": True}
+        return {"is_admin": False}
 
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):

@@ -1,11 +1,11 @@
 from flask.views import MethodView
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, get_jwt, jwt_required
 from flask_smorest import Blueprint, abort
 from passlib.hash import pbkdf2_sha256
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from db import db
-from models import UserModel
+from models import BlocklistModel, UserModel
 from schemas import UserSchema
 
 blp = Blueprint("Users", "users", __name__, description="Operations on users")
@@ -42,6 +42,20 @@ class UserLogin(MethodView):
             return {"access_token": access_token}
 
         abort(401, message="Invalid credentials.")
+
+
+@blp.route("/logout")
+class UserLogout(MethodView):
+    @jwt_required()
+    def post(self):
+        jti_data = get_jwt()["jti"]
+        jti = BlocklistModel(jti=jti_data)
+        try:
+            db.session.add(jti)
+            db.session.commit()
+        except SQLAlchemyError as e:
+            abort(500, message="An error occurred while logging out.")
+        return {"message": "Successfully logged out."}, 201
 
 
 @blp.route("/user/<int:user_id>")
