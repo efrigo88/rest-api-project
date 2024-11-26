@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
 from flask_smorest import Api
 
 from db import db
@@ -31,8 +32,7 @@ def create_app(db_url=None):
 
     db.init_app(app)
 
-    with app.app_context():
-        db.create_all()
+    migrate = Migrate(app, db)
 
     api = Api(app)
     api.register_blueprint(ItemBlueprint)
@@ -76,12 +76,12 @@ def create_app(db_url=None):
             401,
         )
 
-    @jwt.additional_claims_loader
-    def add_claims_to_jwt(identity):
-        # TODO: Read from a config file instead of hard-coding
-        if identity == 1:
-            return {"is_admin": True}
-        return {"is_admin": False}
+    # @jwt.additional_claims_loader
+    # def add_claims_to_jwt(identity):
+    #     # TODO: Read from a config file instead of hard-coding
+    #     if identity == 1:
+    #         return {"is_admin": True}
+    #     return {"is_admin": False}
 
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
