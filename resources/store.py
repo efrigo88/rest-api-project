@@ -13,12 +13,12 @@ blp = Blueprint("stores", __name__, description="Operations on stores")
 @blp.route("/store/<int:store_id>")
 class Store(MethodView):
     @jwt_required()
-    @blp.response(200, StoreSchema) 
+    @blp.response(200, StoreSchema)
     def get(self, store_id):
         store = StoreModel.query.get_or_404(store_id)
         return store
 
-    @jwt_required()
+    @jwt_required(fresh=True)
     def delete(self, store_id):
         store = StoreModel.query.get_or_404(store_id)
         db.session.delete(store)
