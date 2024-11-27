@@ -1,5 +1,5 @@
 #!/bin/sh
-until pg_isready -h db -U user; do
+until nc -z -v -w 5 db 5432; do
   echo "Waiting for database to be ready..."
   sleep 2
 done
